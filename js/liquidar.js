@@ -161,8 +161,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     horaIngresoInput.value = ingreso.fecha_ingreso.split(' ')[1].substring(0, 5);
                     puestoInput.value = ingreso.puesto_codigo;
                     tarifaInput.value = ingreso.tarifa_aplicada;
-                    fechaSalidaInput.value = ingreso.fecha_salida ? ingreso.fecha_salida.split(' ')[0] : '';
-                    horaSalidaInput.value = ingreso.fecha_salida ? ingreso.fecha_salida.split(' ')[1].substring(0, 5) : '';
+                    fechaSalidaInput.value = (ingreso.fecha_salida && ingreso.fecha_salida !== '0000-00-00 00:00:00') ? ingreso.fecha_salida.split(' ')[0] : '';
+                    horaSalidaInput.value = (ingreso.fecha_salida && ingreso.fecha_salida !== '0000-00-00 00:00:00') ? ingreso.fecha_salida.split(' ')[1].substring(0, 5) : '';
+
+                    // Deshabilitar los campos
+                    tipoVehiculoSelect.disabled = true;
+                    propietarioInput.disabled = true;
+                    fechaIngresoInput.disabled = true;
+                    horaIngresoInput.disabled = true;
+                    puestoInput.disabled = true;
+                    tarifaInput.disabled = true;
+
+                    // Habilitar los campos de fecha y hora de salida solo si están vacíos
+                    fechaSalidaInput.disabled = !!(ingreso.fecha_salida && ingreso.fecha_salida !== '0000-00-00 00:00:00');
+                    horaSalidaInput.disabled = !!(ingreso.fecha_salida && ingreso.fecha_salida !== '0000-00-00 00:00:00');
                 } else {
                     alert(data.message);
                 }
@@ -188,6 +200,16 @@ function limpiarFormulario() {
     document.getElementById('fechaSalida').value = '';
     document.getElementById('horaSalida').value = '';
     document.getElementById('total').value = '';
+
+    // Habilitar los campos
+    document.getElementById('tipoVehiculo').disabled = false;
+    document.getElementById('propietario').disabled = false;
+    document.getElementById('fechaIngreso').disabled = false;
+    document.getElementById('horaIngreso').disabled = false;
+    document.getElementById('puesto').disabled = false;
+    document.getElementById('tarifa').disabled = false;
+    document.getElementById('fechaSalida').disabled = false;
+    document.getElementById('horaSalida').disabled = false;
 }
 
 function verificarHorarioSalida(fechaSalida, horaSalida) {

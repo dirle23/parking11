@@ -142,6 +142,25 @@ try {
             }
             break;
 
+            case 'updateFechaSalida':
+                $placa = $_POST['placa'];
+                $fecha_salida = $_POST['fecha_salida'];
+    
+                $stmt = $pdo->prepare("
+                    UPDATE ingresos i
+                    JOIN vehiculos v ON i.id_vehiculo = v.id_vehiculo
+                    SET i.fecha_salida = ?
+                    WHERE v.placa = ? AND i.fecha_salida = '0000-00-00 00:00:00'
+                ");
+                $stmt->execute([$fecha_salida, $placa]);
+    
+                if ($stmt->rowCount() > 0) {
+                    echo json_encode(['success' => true, 'message' => 'Fecha de salida actualizada con éxito.']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'No se pudo actualizar la fecha de salida.']);
+                }
+                break;
+
         default:
             echo json_encode(['success' => false, 'message' => 'Acción no válida.']);
             break;

@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const fechaSalidaInput = document.getElementById('fechaSalida');
     const horaSalidaInput = document.getElementById('horaSalida');
     const totalInput = document.getElementById('total');
+    const tiempoOcupacionInput = document.getElementById('tiempoOcupacion');
 
     // Autocompletar fecha y hora de ingreso con la fecha/hora actual
     const now = new Date();
@@ -137,6 +138,9 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error al obtener las multas:', error);
             });
+
+        // Actualizar la fecha de salida en la base de datos
+        actualizarFechaSalida();
     }
 
     function autocompletarFormulario() {
@@ -175,6 +179,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Habilitar los campos de fecha y hora de salida solo si están vacíos
                     fechaSalidaInput.disabled = !!(ingreso.fecha_salida && ingreso.fecha_salida !== '0000-00-00 00:00:00');
                     horaSalidaInput.disabled = !!(ingreso.fecha_salida && ingreso.fecha_salida !== '0000-00-00 00:00:00');
+
+                    // Calcular el tiempo de ocupación
+                    calcularTiempoOcupacion();
                 } else {
                     alert(data.message);
                 }
@@ -183,6 +190,64 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error al obtener los datos del ingreso:', error);
             });
     }
+
+    function calcularTiempoOcupacion() {
+        const fechaIngreso = new Date(`${fechaIngresoInput.value}T${horaIngresoInput.value}`);
+        const fechaSalida = new Date(`${fechaSalidaInput.value}T${horaSalidaInput.value}`);
+
+        if (isNaN(fechaIngreso) || isNaN(fechaSalida) || fechaSalidaInput.value === '' || fechaSalidaInput.value === '0000-00-00') {
+            tiempoOcupacionInput.value = ''; // Limpiar el campo si no hay fecha de salida válida
+            return;
+        }
+
+        const diferenciaMs = fechaSalida - fechaIngreso;
+        const diferenciaMinutos = Math.floor(diferenciaMs / (1000 * 60));
+        const horas = Math.floor(diferenciaMinutos / 60);
+        const minutos = diferenciaMinutos % 60;
+
+        tiempoOcupacionInput.value = `${horas} horas y ${minutos} minutos`;
+    }
+
+    // Función para actualizar la fecha de salida en la base de datos
+    function actualizarFechaSalida() {
+        const placa = placaInput.value;
+        const fechaSalida = new Date().toLocaleString("en-US", { timeZone: "America/Bogota" });
+        const fechaSalidaFormatted = new Date(fechaSalida).toISOString().slice(0, 19).replace('T', ' ');
+
+        const formData = new URLSearchParams();
+        formData.append('action', 'updateFechaSalida');
+        formData.append('placa', placa);
+        formData.append('fecha_salida', fechaSalidaFormatted);
+
+        fetch('/php/server_ingreso.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData.toString()
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Fecha de salida actualizada con éxito.');
+                } else {
+                    alert('Error al actualizar la fecha de salida.');
+                }
+            })
+            .catch(error => {
+                console.error('Error al actualizar la fecha de salida:', error);
+            });
+    }
+
+    // Llamar a la función cuando se actualicen las fechas y horas de ingreso o salida
+    fechaIngresoInput.addEventListener('change', calcularTiempoOcupacion);
+    horaIngresoInput.addEventListener('change', calcularTiempoOcupacion);
+    fechaSalidaInput.addEventListener('change', () => {
+        calcularTiempoOcupacion();
+        actualizarFechaSalida();
+    });
+    horaSalidaInput.addEventListener('change', () => {
+        calcularTiempoOcupacion();
+        actualizarFechaSalida();
+    });
 
     document.getElementById('ingresarVehiculo').addEventListener('click', ingresarVehiculo);
     document.getElementById('Liquidar').addEventListener('click', calcularTotal);
@@ -200,6 +265,7 @@ function limpiarFormulario() {
     document.getElementById('fechaSalida').value = '';
     document.getElementById('horaSalida').value = '';
     document.getElementById('total').value = '';
+    document.getElementById('tiempoOcupacion').value = '';
 
     // Habilitar los campos
     document.getElementById('tipoVehiculo').disabled = false;

@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const camposMensualidadDiv = document.getElementById('camposMensualidad');
     const campoPropietarioDiv = document.getElementById('campoPropietario');
     const propietarioInput = document.getElementById('propietario');
+    const ubicacionInput = document.getElementById('ubicacion');
+
+    let ubicacionesPuestos = {};
 
     // Function to set the current date and time in Colombia
     function establecerFechaHoraActual() {
@@ -39,10 +42,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 option.value = puesto.id_puesto;
                 option.textContent = puesto.codigo;
                 puestoSelect.appendChild(option);
+                ubicacionesPuestos[puesto.id_puesto] = puesto.ubicacion;
             });
         })
         .catch(error => console.error('Error al cargar puestos disponibles:', error));
     }
+
+    puestoSelect.addEventListener('change', function () {
+        const puestoId = puestoSelect.value;
+        ubicacionInput.value = ubicacionesPuestos[puestoId] || '';
+    });
 
     function validarHorario(fecha, hora) {
         const diaSemana = fecha.getDay();
